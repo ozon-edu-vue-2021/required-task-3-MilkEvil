@@ -8,6 +8,7 @@
         >
             <MapSVG
                 ref="svg"
+                @click="closeInfo($event)"
             />
             <Table
                 v-show="false"
@@ -85,6 +86,11 @@ export default {
 
                 targetSeat.on("click", () => this.$emit('show-info', table._id));
             });
+        },
+        closeInfo(event) {
+            if (!event.target.closest('.table')) {
+                this.$emit('close-info')
+            }
         }
     }
 };

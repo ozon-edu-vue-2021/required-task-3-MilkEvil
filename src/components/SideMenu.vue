@@ -22,7 +22,7 @@
         </div>
         <div class="content">
             <div
-                v-if="!isUserOpenned"
+                v-show="!isUserOpenned"
                 class="legend"
             >
                 <div class="legend__data">
@@ -53,7 +53,7 @@
                 </div>
             </div>
             <div
-                v-else
+                v-show="isUserOpenned"
                 class="profile"
             >
                 <div
@@ -97,10 +97,11 @@ export default {
     data() {
         return {
             legend: [],
-            tables,
+            tables: [],
         };
     },
     created() {
+        this.tables = tables;
         this.loadLegend();
     },
     mounted() {
@@ -140,7 +141,6 @@ export default {
         },
         closeUserInfo() {
             this.$emit('close-info');
-            this.$nextTick(this.makeChart);
         }
     },
     computed: {
