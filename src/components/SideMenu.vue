@@ -6,7 +6,10 @@
                     <h3>Информация</h3>
                 </template>
                 <template v-else>
-                    <div class="action">
+                    <div
+                        class="action"
+                        @click="closeUserInfo"
+                    >
                         <div
                             class="arrow"
                             @click="closeProfile"
@@ -19,7 +22,7 @@
         </div>
         <div class="content">
             <div
-                v-if="!isUserOpenned"
+                v-show="!isUserOpenned"
                 class="legend"
             >
                 <div class="legend__data">
@@ -27,14 +30,16 @@
                         v-if="legend.length > 0"
                         class="legend__items"
                     >
-                        <LegendItem
-                            v-for="(item, index) in legend"
-                            :key="index"
-                            :color="item.color"
-                            :text="item.text"
-                            :counter="item.counter"
-                            class="legend__item"
-                        />
+                        <Draggable v-model="legend">
+                            <LegendItem
+                                v-for="(item, index) in legend"
+                                :key="index"
+                                :color="item.color"
+                                :text="item.text"
+                                :counter="personInUnit[item.group_id]"
+                                class="legend__item"
+                            />
+                        </Draggable>
                     </div>
                     <span
                         v-else
@@ -44,11 +49,11 @@
                     </span>
                 </div>
                 <div class="legend__chart">
-                    <!-- chart -->
+                    <Chart ref="chart" />
                 </div>
             </div>
             <div
-                v-else
+                v-show="isUserOpenned"
                 class="profile"
             >
                 <div
@@ -65,9 +70,12 @@
 </template>
 
 <script>
+import { Doughnut as Chart } from "vue-chartjs";
+import Draggable from "vuedraggable";
 import LegendItem from "./SideMenu/LegendItem.vue";
 import PersonCard from "./SideMenu/PersonCard.vue";
 import legend from "@/assets/data/legend.json";
+import tables from "@/assets/data/tables.json";
 
 export default {
     props: {
@@ -83,14 +91,21 @@ export default {
     components: {
         LegendItem,
         PersonCard,
+        Draggable,
+        Chart,
     },
     data() {
         return {
             legend: [],
+            tables: [],
         };
     },
     created() {
+        this.tables = tables;
         this.loadLegend();
+    },
+    mounted() {
+        this.makeChart();
     },
     methods: {
         loadLegend() {
@@ -99,7 +114,44 @@ export default {
         closeProfile() {
             this.$emit("update:isUserOpenned", false);
         },
+        makeChart() {
+            const legendChartData = {
+                labels: this.legend.map((it) => it.text),
+                datasets: [
+                    {
+                        label: "Легенда",
+                        backgroundColor: this.legend.map(
+                            (legendItem) => legendItem.color
+                        ),
+                        data: this.legend.map(
+                            (legendItem) => this.personInUnit[legendItem.group_id]
+                        ),
+                    },
+                ],
+            };
+
+            const options = {
+                borderWidth: "10px",
+                legend: {
+                    display: false,
+                },
+            };
+
+            this.$refs.chart.renderChart(legendChartData, options);
+        },
+        closeUserInfo() {
+            this.$emit('close-info');
+        }
     },
+    computed: {
+        // Собираем объект id подразделения => кол-во человек
+        personInUnit() {
+            return this.tables.reduce((acc, table) => {
+                acc[table.group_id] = (acc[table.group_id] || 0) + 1
+                return acc;
+            }, {});
+        }
+    }
 };
 </script>
 

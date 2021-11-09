@@ -1,8 +1,15 @@
 <template>
     <div id="app">
         <div class="office">
-            <Map />
-            <SideMenu />
+            <Map
+                @show-info="showInfo($event)"
+                @close-info="closeInfo"
+            />
+            <SideMenu
+                :is-user-openned="isOpened"
+                :person="person"
+                @close-info="closeInfo"
+            />
         </div>
     </div>
 </template>
@@ -10,6 +17,7 @@
 <script>
 import Map from "./components/Map.vue";
 import SideMenu from "./components/SideMenu.vue";
+import peoples from "./assets/data/people.json";
 
 export default {
   name: "App",
@@ -17,6 +25,27 @@ export default {
     Map,
     SideMenu,
   },
+  data() {
+    return {
+      peoples,
+      isOpened: false,
+      tableId: null
+    }
+  },
+  methods: {
+    showInfo(id) {
+      this.tableId = id;
+      this.isOpened = true;
+    },
+    closeInfo() {
+      this.isOpened = false;
+    }
+  },
+  computed: {
+    person() {
+      return this.peoples.find(user => user.tableId === this.tableId) || {}
+    }
+  }
 };
 </script>
 
